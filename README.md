@@ -455,16 +455,16 @@ The file contains incoming requests, impressions and RPMA data for traffic tuple
 
 | Dimension | oRTB | Description | Mapping |
 |-----------|------|-------------|---------|
-| delivery_channel | $.site, $.app | Site or App. "ctv" in delivery_channel is a special case which should be matched "app" blob and "device_type" of 3 (TV). |  |
-| format | $.imp.banner, $.imp.video | Media type like banner or video |  |
-| country_code | $.device.geo.country | Country code using ISO-3166-1-alpha-3. |  |
-| publisher_id | $.site.publisher.id, $.app.publisher.id | Exchange-specific seller ID. Every ID must map to only a single entity that is paid for inventory transacted via that ID. Corresponds to a seller_id of a seller in the exchange's sellers.json file. |  |
-| slot_size | $.imp[0].video.w, imp[0].video.h, $.imp[0].banner.w, imp[0].banner.h | Width/height of the video player in device independent pixels (DIPS). Exact width/height in device-independent pixels (DIPS); recommended if no format objects are specified. |  |
-| slot_position | $.imp[0].video.pos | Ad position on screen |  |
-| device_type | $.device.devicetype | The general type of device. Refer to [List: Device Types](https://github.com/InteractiveAdvertisingBureau/AdCOM/blob/master/AdCOM%20v1.0%20FINAL.md#list--device-types-) in AdCOM 1.0. | 1: MOBILE, 2: DESKTOP, 3: CONNECTEDTV, 4: MOBILE, 5: MOBILE, 6: CONECTEDDEVICE, 7: CONNECTEDTV, 8: UNKNOWN |
-| os_name | Derived from $.device.sua | Operating system name derived from the user-agent string through WURFL service |  |
-| device_make | Derived from $.device.sua | Device make derived from the user-agent string through WURFL service |  |
-| device_browser | Derived from $.device.sua | Device browser derived from the user-agent string through WURFL service |  |
+| delivery_channel | `$.site`, `$.app` | Site or App. "ctv" in delivery_channel is a special case which should be matched "app" blob and "device_type" of 3 (TV). |  |
+| format | `$.imp.banner`, `$.imp.video` | Media type like banner or video |  |
+| country_code | `$.device.geo.country` | Country code using ISO-3166-1-alpha-3. |  |
+| publisher_id | `$.site.publisher.id`, `$.app.publisher.id` | Exchange-specific seller ID. Every ID must map to only a single entity that is paid for inventory transacted via that ID. Corresponds to a seller_id of a seller in the exchange's sellers.json file. |  |
+| slot_size | `$.imp[0].video.w`, `imp[0].video.h`, `$.imp[0].banner.w`, `imp[0].banner.h` | Width/height of the video player in device independent pixels (DIPS). Exact width/height in device-independent pixels (DIPS); recommended if no format objects are specified. |  |
+| slot_position | `$.imp[0].video.pos` | Ad position on screen |  |
+| device_type | `$.device.devicetype` | The general type of device. Refer to [List: Device Types](https://github.com/InteractiveAdvertisingBureau/AdCOM/blob/master/AdCOM%20v1.0%20FINAL.md#list--device-types-) in AdCOM 1.0. | 1: MOBILE, 2: DESKTOP, 3: CONNECTEDTV, 4: MOBILE, 5: MOBILE, 6: CONECTEDDEVICE, 7: CONNECTEDTV, 8: UNKNOWN |
+| os_name | Derived from `$.device.sua` | Operating system name derived from the user-agent string through WURFL service |  |
+| device_make | Derived from `$.device.sua` | Device make derived from the user-agent string through WURFL service |  |
+| device_browser | Derived from `$.device.sua` | Device browser derived from the user-agent string through WURFL service |  |
 | **Metric** |  |  |  |
 | incoming |  | Weekly average incoming bid request count for a given hour |  |
 | impressions |  | Weekly average impressions count for a given hour |  |
