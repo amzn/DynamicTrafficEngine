@@ -4,43 +4,48 @@
 
 ## 1.1. About Dynamic Traffic Engine
 
-Amazon Ads introduces Dynamic Traffic Engine (DTE), a signal exchange and demand-driven traffic shaping mechanism aimed at reducing programmatic waste and optimizing network and distribution costs for supply-side platforms (SSPs) and Amazon Ads. Amazon Ads shares a set of standard OpenRTB signals, and traffic filtering rules with SSPs. SSPs can then evaluate their bid requests (supply inventory) against those signals, before making a decision to either send or not send the requests to Amazon Ads. DTE helps both SSPs and Amazon Ads better transact on more valuable and in-demand traffic, optimizing Queries Per Second (QPS) bandwidth on both ends.
+Dynamic Traffic Engine (DTE) is an open-source signal exchange and demand-driven traffic shaping mechanism aimed at reducing programmatic waste and optimizing network and distribution costs for both supply-side platforms (sellers) and demand-side platforms (buyers). Buyers share a set of standard OpenRTB signals and traffic filtering rules with sellers. Sellers can then evaluate their bid requests (supply inventory) against those signals before deciding whether to send requests to the buyer. DTE helps both parties transact on more valuable, in-demand traffic while optimizing Queries Per Second (QPS) bandwidth on both ends.
 
 Dynamic Traffic Engine consists of three major components:
 
-- **DTE cloud:** The DTE cloud component is hosted by Amazon Ads. Amazon Ads uploads low value signal files (currently available in beta) and configuration files to the cloud to provide information regarding signal schema, signal extraction rules and signal output data. The signals are derived from the OpenRTB request that SSPs send to Amazon Ads and are based on Amazon Ads' internal traffic shaping rules and algorithms. High value signal sharing is planned for later in 2026.
-- **DTE evaluator library:** DTE evaluator library contains functionality to provide filtering recommendations based on the given signals and traffic filtering rules. The Evaluator library periodically pulls the signals and configuration files from DTE cloud to evaluate each bid request. DTE library vends filtering recommendation for each bid request to the SSP through an API built in the library.
-- **DTE filtering**: Once the SSP receives filtering recommendations from DTE evaluator library, SSPs are responsible for enforcing the decision to either filter or forward the bid request on Amazon Ads' behalf.
+- **DTE Cloud:**  Hosted by the buyer. The buyer uploads signal files and configuration files containing signal schema, extraction rules, and output data. Signals are derived from OpenRTB requests and based on the buyer's internal traffic shaping rules and algorithms.
+- **DTE Evaluator Library:** Contains functionality to provide filtering recommendations based on signals and traffic filtering rules. The library periodically pulls signals and configuration files from DTE Cloud to evaluate each bid request and vends filtering recommendations via API.
+- **DTE Filtering**: Once the seller receives filtering recommendations, they are responsible for enforcing the decision to either filter or forward bid requests on the buyer's behalf.
 
 ## 1.2. Manual Overview
 
-This manual provides comprehensive guidance on how SSPs can integrate Dynamic Traffic Engine into their existing systems. The table below provides a high-level view of what is needed to integrate with DTE.
+This manual provides comprehensive guidance on how Sellers can integrate Dynamic Traffic Engine into their existing systems. The table below provides a high-level view of what is needed to integrate with DTE.
 
 | Step | Description | Section |
 |------|-------------|---------|
 | 1 | Set up access to DTE cloud to pull signals and configuration files | **2.1** |
-| 2 | Install DTE evaluator library provided by Amazon Ads ***OR*** build their own custom evaluator following the specifications and requirement outlined in this manual | **2.2** |
+| 2 | Install DTE evaluator library provided by the Buyer ***OR*** build their own custom evaluator following the specifications and requirement outlined in this manual | **2.2** |
 | 3 | Meet DTE filtering feature requirements based on evaluator recommendations | **2.3** |
 | 4 | Complete all integration validation steps | **3** |
 | 5 | Provide automated weekly reporting as per requirements | **Appendix-2** |
 
 ## 1.3. Contact Information
 
-**Product Lead:** Kaditya Naidu [kadityn@amazon.com]
-
-**Engineering Lead:** Pradeep Makineni [pmakinen@amazon.com], Kevin Chiang [kchiang@amazon.com]
+For integration support, contact your buyer's integration team. If you are implementing DTE as a buyer, designate appropriate product and engineering contacts for your seller partners. 
 
 ## 1.4. Terminology Glossary
 
 | Term | Definition |
 |------|------------|
-| SSP | Supply Side Platform. A programmatic software for publishers to facilitate sales of their *advertising* impressions |
+| SSP | Supply Side Platform (Seller). A programmatic software for publishers to facilitate sales of their advertising impression. |
+| DSP | Demand Side Platform (Buyer). A programmatic software for advertisers to purchase advertising impressions. |
+| Seller | The supply-side platform sending bid requests. Used interchangeably with SSP. |
+| Buyer | The demand-side platform receiving bid requests and responding with bids. Used interchangeably with DSP. |
 | openRTB | OpenRTB or Open Real Time Bidding is an industry specification for the programmatic buying and selling of advertising. |
-| AWS | Amazon Web Services. |
-| Configuration | Also refered to as 'Signal Metadata'. |
-| Tuple | Also refered to as 'Rule'. |
+| AWS | Amazon Web Services. Used as the reference cloud implementation. |
+| Configuration | Also referred to as 'Signal Metadata'. |
+| Tuple | Also referred to as 'Rule'. |
 
 ## 1.5. Version History
+
+**2.3 [2026/02/05]**
+
+1. Updated to generalized language. ***(All sections)***
 
 **2.2 [2025/10/05]**
 
@@ -76,7 +81,7 @@ This manual provides comprehensive guidance on how SSPs can integrate Dynamic Tr
 **1.4 [2025/02/28]**
 
 1. Added bucket parameter to specify correct regionalized S3 bucket for library to read model information from. ***(2.2.4. DTE Evaluator Library Installation)***
-2. Clarified interpretation of DTE response values, when to filter requests, and what information to forward to Amazon. ***(2.3. DTE Filtering)***
+2. Clarified interpretation of DTE response values, when to filter requests, and what information to forward to the Buyer. ***(2.3. DTE Filtering)***
 3. Added sections on failure handling. ***(2.4. DTE Failure Handling, 3. DTE Integration Validation Requirements)***
 4. Added additional FAQs. ***(4. FAQs)***
 
@@ -96,7 +101,7 @@ This manual provides comprehensive guidance on how SSPs can integrate Dynamic Tr
 
 **1.1 [2025/01/14]**
 
-1. Closed beta release for Amazon Ads and directly integrated testing with SSPs.
+1. Closed beta release for Amazon Ads and directly integrated testing with Sellers.
 
 ---
 
@@ -104,20 +109,20 @@ This manual provides comprehensive guidance on how SSPs can integrate Dynamic Tr
 
 ## 2.1. DTE Cloud
 
-Amazon Ads hosts (1) Configuration files, and (2) Signal Output files for SSP consumption in AWS S3 bucket. To set up access to read and download the files from S3, see ***Appendix-1: How to establish connection with DTE cloud.***
+The buyer hosts (1) Configuration files and (2) Signal Output files for seller consumption in cloud storage. The reference implementation uses AWS S3, but other cloud storage solutions can be adapted. To set up access to read and download the files from storage, see ***Appendix-1: How to establish connection with DTE cloud.***
 
 **File Data Structure**
 
-*Disclaimer:* Signals will evolve over time. In closed beta, we have low value signal available for sharing to take advantage of QPS optimization benefits. Amazon Ads intends to share high value signals with DTE integrated SSPs in future.
+*Disclaimer:* Signals will evolve over time. In closed beta, low value signals are available for sharing to take advantage of QPS optimization benefits. Buyers may share high value signals with DTE-integrated sellers in the future.
 
-The following data files will be provided in the S3 bucket:
+The following data files will be provided in the cloud bucket:
 
-1. Model Configuration file: s3://experiment-traffic-shaping-***aws_region***/***ssp_name***/configuration/model/config.json
-    1. s3://experiment-traffic-shaping-us-east-1/test_ssp/configuration/model/config.json
-3. Experiment Configuration file: s3://experiment-traffic-shaping-***aws_region***/***ssp_name***/configuration/experiment/config.json
-    1. s3://experiment-traffic-shaping-us-east-1/test_ssp/configuration/experiment/config.json
-3. Signal Output files: s3://experiment-traffic-shaping-***aws_region***/***ssp_name***/***yyyy***-***mm***-***dd***/***hh***/***model-identifer-name***.csv
-    1. s3://experiment-traffic-shaping-us-east-1/test_ssp/2025-01-14/04/adsp_low-value_v1.csv
+1. Model Configuration file: `{storage_path}/{seller_name}/configuration/model/config.json`
+    1. s3://experiment-traffic-shaping-us-east-1/test_seller/configuration/model/config.json
+3. Experiment Configuration file: `{storage_path}/{seller_name}/configuration/experiment/config.json`
+    1. s3://experiment-traffic-shaping-us-east-1/test_seller/configuration/experiment/config.json
+3. Signal Output files: `{storage_path}/{seller_name}/{yyyy}-{mm}-{dd}/{hh}/{model_identifier_name}`
+    1. s3://experiment-traffic-shaping-us-east-1/test_seller/2025-01-14/04/buyer_low-value_v1.csv
 
 ### 2.1.1. Configuration (or Config) File
 
@@ -126,7 +131,7 @@ There are 2 types of configuration files (1) Model Configuration and (2) Experim
 | # | Configuration Type | Description |
 |---|-------------------|-------------|
 | 1 | ModelConfiguration | This configuration provides information on how the features can be extracted from the OpenRTB request, and transformed into a string that can be matched with the signal output. |
-| 2 | ExperimentConfiguration | This configuration provides information on how to split the traffic, such that a portion of the traffic can be allocated for Amazon Ads' learning purpose (referred to as control group) |
+| 2 | ExperimentConfiguration | This configuration provides information on how to split the traffic, such that a portion of the traffic can be allocated for the Buyer's learning purpose (referred to as control group) |
 
 #### 2.1.1.1. Model Configuration
 
@@ -135,10 +140,10 @@ This section describes structure of the model configuration json.
 | #  | Field | Description |
 |---|-------|-------------|
 | 1 | type | Type of the configuration. This type of configurations uses *ModelConfiguration* as the type. |
-| 2 | modelDefinitionByIdentifier | Defines one or more signals that the DSP shares with the SSP. |
+| 2 | modelDefinitionByIdentifier | Defines one or more signals that the Buyer shares with the Seller. |
 | 2.1 | *[identifier-name]* | Name of the signal. Note that value of this key is different for each signal. |
 | 2.1.1 | identifier | Name of the signal. This will be same as the parent key. |
-| 2.1.2 | dsp | Name of the DSP that is sharing this signal. Ex: adsp. |
+| 2.1.2 | dsp | Name of the Buyer (DSP) that is sharing this signal. Ex: example_dsp. |
 | 2.1.3 | name | Name of the signal. Unlike the "identifier", this field does not have any version information in the value. |
 | 2.1.4 | version | Version of the signal. |
 | 2.1.5 | modelType | Type of the model, which determines if the tuple outputs identify high or low value supply. One of "HighValue" or "LowValue". "HighValue" models will evaluate requests as low value if no tuple matches, while "LowValue" models will evaluate requests as high value if no tuple matches. |
@@ -156,9 +161,9 @@ This section describes structure of the model configuration json.
 {
   "type": "ModelConfiguration",
   "modelDefinitionByIdentifier": {
-    "adsp_low-value_v2": {
-      "identifier": "adsp_low-value_v2",
-      "dsp": "adsp",
+    "buyer_low-value_v2": {
+      "identifier": "buyer_low-value_v2",
+      "dsp": "example_dsp",
       "name": "low-value",
       "version": "v2",
       "type": "LowValue",
@@ -265,9 +270,9 @@ This section describes structure of the model configuration json.
         }
       ]
     },
-    "adsp_high-priority-deals_v1": {
-      "identifier": "adsp_high-priority-deals_v1",
-      "dsp": "adsp",
+    "buyer_high-priority-deals_v1": {
+      "identifier": "buyer_high-priority-deals_v1",
+      "dsp": "example_dsp",
       "name": "high-priority-deals",
       "version": "v1",
       "type": "HighValue",
@@ -337,25 +342,25 @@ This section describes structure of the model configuration json.
 
 #### 2.1.1.2. Experiment Configuration
 
-This section describes structure of the experiment configuration json. The experiment specifies how to split the traffic into 2 or more groups such that one of the traffic group can be used by the DSP to learn about the model performance and train new models for the SSP consumption. *A reference implementation on how to consume the experiment configuration and also split the traffic is provided in the Library.*
+This section describes structure of the experiment configuration json. The experiment specifies how to split the traffic into 2 or more groups such that one of the traffic group can be used by the Buyer to learn about the model performance and train new models for the Seller consumption. *A reference implementation on how to consume the experiment configuration and also split the traffic is provided in the Library.*
 
 | #  | Field | Description |
 |---|-------|-------------|
 | 1 | type | Type of the configuration. This type of configurations uses *ExperimentConfiguration* as the type. |
-| 2 | experimentDefinitionByName | Defines one or more experiments that the DSP shares with the SSP. |
+| 2 | experimentDefinitionByName | Defines one or more experiments that the Buyer shares with the Seller. |
 | 2.1 | *[identifier-name]* | Name of the experiment. Note that value of this key is different for each experiment. |
 | 2.1.1 | name | Name of the experiment. This will be same as the parent key. |
 | 2.1.2 | type | Type of the experiment. Currently only the type "soft-filter" is supported. |
 | 2.1.3 | startTimeUTC | Specifies the time on when to start using this experiment. The value is provided as UTC epoch milli-seconds. |
 | 2.1.4 | endTimeUTC | Specifies the time on when to stop using this experiment. The value is provided as UTC epoch milli-seconds. |
-| 2.1.5 | allocationIdStart | It is used when you use **TreatmentAllocatorOnHash** in the **provideTreatmentAllocator** and provide the request id in the input. Specifies the start and end integers for allocation ids. These allocation ids are split between the treatment groups to inturn split the requests. SSPs are expected to implement (*reference code avalable in library*) logic that randomly assigns an allocationId (integer) to each request that can be evaluated by the model. **It has to be between 0 and 4095 (inclusive).** *We use first 3 chars of the hexdecimal of the request id which is 16^3, as the allocation id.* |
-| 2.1.6 | allocationIdEnd |  |
+| 2.1.5 | allocationIdStart | It is used when you use **TreatmentAllocatorOnHash** in the **provideTreatmentAllocator** and provide the request id in the input. Specifies the start and end integers for allocation ids. These allocation ids are split between the treatment groups to in turn split the requests. Sellers are expected to implement (*reference code avalable in library*) logic that randomly assigns an allocationId (integer) to each request that can be evaluated by the model. **It has to be between 0 and 4095 (inclusive).** *We use first 3 chars of the hexdecimal of the request id which is 16^3, as the allocation id.* |
+| 2.1.6 | allocationIdEnd | See above |
 | 2.1.7 | treatments | Provides an ordered list of treatments (traffic groups), and how to allocate traffic between these groups. |
 | 2.1.7.1 | treatmentCode | Name of the treatment |
 | 2.1.7.2 | idStart | These fields specifies a range of allocationIds. Requests associated with allocation Ids, that fall within this range are associated with this treatment. **It has to be between 0 and 4095 (inclusive).** *We use first 3 chars of the hexdecimal of the request id which is 16^3, as the allocation id.* |
-| 2.1.7.3 | idEnd |  |
+| 2.1.7.3 | idEnd | See above |
 | 2.1.7.4 | weight | [By Default] It is used when you use **TreatmentAllocatorOnRandom** in the **provideTreatmentAllocator**. Specifies the probability that one request is allocated to one group. |
-| 2.1.7.5 | learning | An integer flag to determine if the given treatment (traffic group) is used for learning purposes. Traffic allocated to a learning value of 1 should not be subject to filtering, while traffic allocated to a learning value of 0 is subject to filtering. We still expect SSPs to add extension fields in the bid-requests based on the model filtering evaluation. *See Section 2.2.5* |
+| 2.1.7.5 | learning | An integer flag to determine if the given treatment (traffic group) is used for learning purposes. Traffic allocated to a learning value of 1 should not be subject to filtering, while traffic allocated to a learning value of 0 is subject to filtering. We still expect Sellers to add extension fields in the bid-requests based on the model filtering evaluation. *See Section 2.2.5* |
 | 3 | modelToExperiment | A map of models to experiments, to specify which experiment to use when making filtering decisions for a given model. |
 | 3.1 | [model-identifier] | The key in this map is the model identifier defined in the model configuration. *See Section 2.1.1.1* |
 
@@ -391,15 +396,15 @@ This section describes structure of the experiment configuration json. The exper
         }
     },
     "modelToExperiment": {
-        "adsp_low-value_v2": "DynamicTrafficEngineSoftFilter",
-        "adsp_high-priority-deals_v1": "DemandDrivenTrafficEvaluatorSoftFilter"
+        "buyer_low-value_v2": "DynamicTrafficEngineSoftFilter",
+        "buyer_high-priority-deals_v1": "DemandDrivenTrafficEvaluatorSoftFilter"
     }
 }
 ```
 
 ### 2.1.2. Signal Output File
 
-This is the raw signal output file. The values for each feature is derived from the OpenRTB request that an SSP sends to Amazon Ads. For current closed beta, any tuple in the output is a low-value tuple and requests matching to any of these tuples are marked to be filtered. ***Note: Fetching Signal Output files are automatically handled by the evaluator library (please refer section 2.2 for how to install the Amazon DTE library or build your own).***
+This is the raw signal output file. The values for each feature is derived from the OpenRTB request that a Seller sends to the Buyer. ***Note: Fetching Signal Output files are automatically handled by the evaluator library (please refer section 2.2 for how to install the DTE library or build your own).***
 
 **Example - Low Value Model**
 
@@ -434,20 +439,20 @@ deal789|VIDEO|CONNECTEDTV|CAN
 
 ### 2.1.3. RPMA Threshold Sharing - Monetization Insights
 
-**Important Note**: This data is provided for SSP traffic optimization insights only and is **NOT** used by the DTE evaluator library for filtering recommendation. The DTE evaluator library will only use the the model files specified in Section 2.1.2 for filter/no-filter decisions.
+**Important Note**: This data is provided for Seller traffic optimization insights only and is **NOT** used by the DTE evaluator library for filtering recommendation. The DTE evaluator library will only use the the model files specified in Section 2.1.2 for filter/no-filter decisions.
 
 #### 2.1.3.1. Overview
 
-Amazon Ads provides additional monetization model files that give SSPs insights into request performance using RPMA (Revenue Per million Ad Requests) metrics. This data helps SSPs identify their lowest and highest performing traffic patterns and optimize their traffic shaping within QPS allocation caps.
+Buyers may provide additional monetization model files that give Sellers insights into request performance using RPMA (Revenue Per million Ad Requests) metrics. This data helps Sellers identify their lowest and highest performing traffic patterns and optimize their traffic shaping within QPS allocation caps.
 
 #### 2.1.3.2. File Location
 
 Monetization insight files are available at:
 
-`s3://experiment-traffic-shaping-*aws_region*/*ssp_name*/insights/*yyyy*-*mm*-*dd*/*hh*/monetization_insights_v1.csv`
+`{storage_path}/{seller_name}/insights/{yyyy}-{mm}-{dd}/{hh}/monetization_insights_v1.csv`
 
 Example:
-`s3://experiment-traffic-shaping-us-east-1/test_ssp/insights/2025-01-14/04/monetization_insights_v1.csv`
+`s3://experiment-traffic-shaping-us-east-1/test_seller/insights/2025-01-14/04/monetization_insights_v1.csv`
 
 #### 2.1.3.3. Data Structure
 
@@ -473,7 +478,7 @@ The file contains incoming requests, impressions and RPMA data for traffic tuple
 
 #### 2.1.3.4. Usage Guidelines
 
-SSPs can use this data to:
+Sellers can use this data to:
 
 1. Identify High-Value Traffic: Focus QPS allocation on tuples with higher RPMA values
 2. Optimize Traffic Mix: Prioritize sending requests that match higher-performing patterns over lower-performing patterns
@@ -497,32 +502,27 @@ Important note:
 
 ## 2.2. DTE Evaluator Library
 
-DTE evaluator library contains functionality to provide filtering recommendations based on given traffic rules and signals. The Evaluator periodically pulls signals and configuration files from DTE cloud to evaluate SSP bid requests and provide a filtering recommendation to the SSP. The SSP then uses this information to either forward the traffic to Amazon Ads or filter the traffic.
+The DTE evaluator library contains functionality to provide filtering recommendations based on given traffic rules and signals. The Evaluator periodically pulls signals and configuration files from DTE cloud to evaluate Seller bid requests and provide a filtering recommendation to the Seller. The Seller then uses this information to either forward the traffic to the Buyer or filter the traffic.
 
 **Important note:**
 
-The evaluator library simplifies DTE integration for SSP:
+The evaluator library simplifies DTE integration for Sellers:
 
 1. The library evaluates OpenRTB requests against the `Signal Output files` by constructing required tuples for matching.
 2. The library reads and applies the `learning percentage` specified in the `Configuration file` to create `treatment` and `control` groups for the experiment.
-3. The library automatically syncs every 5 minutes to look for new updates in the `Signal Output files` and `Configuration files` to get most updated filtering recommendation from Amazon Ads. *In beta we refresh the output files every hour.*
+3. The library automatically syncs every 5 minutes to look for new updates in the `Signal Output files` and `Configuration files` to get most updated filtering recommendation from the Buyer.
 4. The DTE evaluator library will only use the the model files specified in Section 2.1.2 for filter/no-filter decisions.
 
-*Will Amazon Ads provide this DTE Evaluator library to SSP or SSP has to build its own?*
+*Will the Buyer provide this DTE Evaluator library to Seller or Seller has to build its own?*
 
-Amazon Ads will provide the link to the source code once the SSP has agreed to the below:
-
-1. The SSP has agreed in writing to the additional online terms for code sharing [This will be provided separately via email] and,
-2. SSP wants to install and use DTE Evaluator Library provided by Amazon Ads (or will use source code as guideline)
-
-If the SSP decides to build their own version of the evaluator library or custom evaluation logic, we recommend to use the DTE evaluator library source code as guideline and meet specifications and integration requirements in ***Section 3. DTE integration validation requirements.***
+The Buyer will provide the link to the source code. If the Seller decides to build their own version of the evaluator library or custom evaluation logic, we recommend to use the DTE evaluator library source code as guideline and meet specifications and integration requirements in ***Section 3. DTE integration validation requirements.***
 
 ### 2.2.1. Pre-requisites
 
 Before starting the integration, ensure you have the following:
 
-1. AWS account with appropriate permissions (refer to Section 2.1)
-2. Access to the Amazon Ads AWS S3 bucket (refer to Section 2.1)
+1. Cloud account with appropriate permissions (e.g. AWS account - refer to Section 2.1)
+2. Access to the Buyer's cloud storage account (e.g. AWS S3 bucket - refer to Section 2.1)
 3. Use Java Development Kit (JDK) or Golang (unless building your own custom library). The Java library was tested with [Amazon Corretto 17](https://docs.aws.amazon.com/corretto/latest/corretto-17-ug/downloads-list.html) and the Golang library was tested with [Go 1.21](https://tip.golang.org/doc/go1.21).
 4. [Java only] For proper logging, `log4j-api` and `log4j-core`, which can be downloaded from [apache-log4j-2.24.3-bin.zip](https://downloads.apache.org/logging/log4j/2.24.3/apache-log4j-2.24.3-bin.zip), must be dependencies in your Java application
 
@@ -530,7 +530,7 @@ Before starting the integration, ensure you have the following:
 
 The DTE evaluator library is composed of the following components.
 
-1. ***Evaluator (Online filtering component)***. The SSP service integrates with the library to get recommendations on whether a bid request should be forwarded to Amazon Ads.
+1. ***Evaluator (Online filtering component)***. The Seller service integrates with the library to get recommendations on whether a bid request should be forwarded to the Buyer.
 2. ***Configuration (Config) Store***. This is the in-memory object that contains information on the signal schema and how to extract features from the incoming OpenRTB request.
 3. ***Signal Store***. This is the in-memory object that contains the actual signal output data.
 4. ***Signal/Config Refresher***. This component is responsible for connecting to the DTE Cloud and periodically fetch and refresh signals/configs into the in-memory stores.
@@ -545,13 +545,13 @@ There are several options to integrate with DTE and utilize the shared signals f
 
 ### 2.2.4. DTE Evaluator Library Installation
 
-The `BidRequestEvaluatorFactory` class will instantiate all the objects necessary to successfully filter traffic. In the SSP service Spring/Guice config an instance of the `BidRequestEvaluatorFactory` **must be explicitly initialized** after providing all the necessary inputs:
+The `BidRequestEvaluatorFactory` class will instantiate all the objects necessary to successfully filter traffic. In the Seller service Spring/Guice config an instance of the `BidRequestEvaluatorFactory` **must be explicitly initialized** after providing all the necessary inputs:
 
-1. ***supplierName***: This is a string that uniquely identifies the SSP within Amazon Ads. The library uses this information to appropriately consume signals and config from the Amazon Ads AWS account.
-2. ***credentialsProvider***: This is an object of type `AWSCredentialProvider`, used for connecting to the Amazon Ads AWS account. Amazon Ads hosts signals for SSP consumption in an S3 bucket, and the onboarding process involves setting up access to read and download signal data from this S3 bucket. See *Appendix - 1 How to establish connection with DTE cloud*, for an example on how to configure this credential provider.
-3. ***region***: This is a string that identifies the region of the AWS S3 client to be initialized in. In most cases, this will be the AWS region the instance is initialized in.
-4. ***bucket***: This is a string that identifies the regionalized S3 bucket (see *Section 2.1*) from which the library fetches all (regionalized) model configuration and output files. In most cases, the bucket will be of the form `experiment-traffic-shaping-*model_aws_region*`, where `*model_aws_region*` is one of: `us-east-1`, `us-west-2`, `eu-west-1`, and `ap-southeast-1`.
-5. ***executor*** *(optional)*: The Signal/Config refresher, will look up for new signals/configs in Amazon Ads' AWS account once every 5 minutes. The library can schedule this periodic task on the provided executor. The executor should be an instance of `ScheduledExecutorService`. If this instance is not provided, the factory will instantiate an instance of a `ScheduledExecutorService` internally, as a fallback.
+1. ***supplierName***: This is a string that uniquely identifies the Seller within the Buyer's system. The library uses this information to appropriately consume signals and config from the Buyer's cloud account.
+2. ***credentialsProvider***: This is an object of type `AWSCredentialProvider`, used for connecting to the Buyer's cloud account. Buyers host signals for Seller consumption in a storage (e.g. S3) bucket, and the onboarding process involves setting up access to read and download signal data from this bucket. See *Appendix - 1 How to establish connection with DTE cloud*, for an example on how to configure this credential provider.
+3. ***region***: This is a string that identifies the region of the cloud storage (e.g. AWS S3) client to be initialized in. In most cases, this will be the cloud region the instance is initialized in.
+4. ***bucket***: This is a string that identifies the regionalized cloud storage (see *Section 2.1*) from which the library fetches all (regionalized) model configuration and output files. In most cases, the bucket will be of the form `experiment-traffic-shaping-*model_aws_region*`, where `*model_aws_region*` is one of: `us-east-1`, `us-west-2`, `eu-west-1`, and `ap-southeast-1`.
+5. ***executor*** *(optional)*: The Signal/Config refresher, will look up for new signals/configs in the Buyer's cloud account once every 5 minutes. The library can schedule this periodic task on the provided executor. The executor should be an instance of `ScheduledExecutorService`. If this instance is not provided, the factory will instantiate an instance of a `ScheduledExecutorService` internally, as a fallback.
 
 ```java
 BidRequestEvaluatorFactory bidRequestEvaluatorFactory = 
@@ -576,9 +576,9 @@ In addition, update the logging configurations under `src/main/resources/log4j2.
 
 For the Golang library, the initialization method is slightly different.
 
-1. ***supplier-name***: This is a string that uniquely identifies the SSP within Amazon Ads. The library uses this information to appropriately consume signals and config from the Amazon Ads AWS account.
-2. ***credentials***: This is a reference to the AWS Credentials Provider used for connecting to the Amazon Ads AWS account. Amazon Ads hosts signals for SSP consumption in an S3 bucket, and the onboarding process involves setting up access to read and download signal data from this S3 bucket. See *Appendix - 1 How to establish connection with DTE cloud*, for an example on how to configure this credential provider.
-3. ***region***: This is a string that identifies the region of the AWS S3 client to be initialized in. In most cases, this will be the AWS region the instance is initialized in.
+1. ***supplier-name***: This is a string that uniquely identifies the Seller within the Buyer's system. The library uses this information to appropriately consume signals and configurations.
+2. ***credentials***: This is a reference to the Cloud Credentials Provider used for connecting to the Buyer's cloud account. Buyers host signals for Seller consumption in a storage (e.g. S3) bucket, and the onboarding process involves setting up access to read and download signal data from this bucket. See *Appendix - 1 How to establish connection with DTE cloud*, for an example on how to configure this credential provider.
+3. ***region***: This is a string that identifies the region of the cloud storage (e.g. AWS S3) client to be initialized in. In most cases, this will be the cloud region the instance is initialized in.
 4. ***folder-prefix/bucket-name***: This is a string of the local path prefix or the bucket prefix where the configuration data and model data is stored. E.g. `local/path/to/metadata` or `s3://experiment-traffic-shaping-us-east-1`.
 5. ***schedule-period***: This is an integer that represents the period (in milliseconds) of the scheduled tasks. E.g. a value of 300000 checks for new configuration and model data every 5 minutes.
 
@@ -601,7 +601,7 @@ requestEvaluator := demanddriventrafficevaluator.NewRequestEvaluator(
 
 ### 2.2.5. Evaluate API
 
-Once the evaluator instance is created, it should be used by the SSP to receive bid or no-bid recommendations. SSP should invoke the `evaluate` method on that instance, before request is forwarded to Amazon Ads. This call will return recommendations, on whether the request should be forwarded to the Amazon Ads.
+Once the evaluator instance is created, it should be used by the Seller to receive bid or no-bid recommendations. Sellers should invoke the `evaluate` method on that instance, before request is forwarded to the Buyer. This call will return recommendations, on whether the request should be forwarded to the Buyer.
 
 ```java
 // API call sample using Java library
@@ -628,15 +628,15 @@ requestOutput := requestEvaluator.Evaluate(&evaluation.BidRequestEvaluatorInput{
 
 | Response Body Field | Type | Description |
 |--------------------|------|-------------|
-| response | Object, required | Filter recommendation for Amazon Ads. |
+| response | Object, required | Filter recommendation for the Buyer |
 | **Response Object** |  |  |
 | slots (imps) | array of objects, required | Evaluation of signals for each slot (imp object) of the incoming bid request |
-| ext | string, required | SSP is expected to add this JSON blob to the `ext` field in the root level object of the OpenRTB request that they forward to Amazon Ads. This field contains information on whether the evaluator internally assigned the request to treatment (*learning*=0) or control (*learning*=1). Example value: `"amazontest": {"learning": 1}` |
+| ext | string, required | Seller is expected to add this JSON blob to the `ext` field in the root level object of the OpenRTB request that they forward to the Buyer. This field contains information on whether the evaluator internally assigned the request to treatment (*learning*=0) or control (*learning*=1). Example value: `"amazontest": {"learning": 1}` |
 | **Slots Object** |  |  |
-| filterDecision | float, required | Recommended filter decision for the slot based on Amazon Ads signal(s). This is a value ranging from 0.0 to 1.0, where 0.0 indicates no probability of getting response from Amazon Ads, and 1.0 indicates highest probability to get a response from Amazon Ads. |
+| filterDecision | float, required | Recommended filter decision for the slot based on Buyer's signal(s). This is a value ranging from 0.0 to 1.0, where 0.0 indicates no probability of getting response from the Buyer, and 1.0 indicates highest probability to get a response from the Buyer. |
 | reasonCode | string, optional | Future extension to provide more information on how we arrived at the filter recommendation. |
 | signals | array of objects, optional | Future extension to provide more detailed information regarding executed signals. |
-| ext | string, required | SSP is expected to add this json blob to the `ext` field in the `imp` object of the oRTB request that they forward to Amazon Ads. This field contains information about the decision taken by the evaluator internally. Example value: `"amazontest": {"decision": 0.0}` |
+| ext | string, required | Seller is expected to add this json blob to the `ext` field in the `imp` object of the oRTB request that they forward to the Buyer. This field contains information about the decision taken by the evaluator internally. Example value: `"amazontest": {"decision": 0.0}` |
 | **Signals Object (future extension)** |  |  |
 | name | string | Name of the signal |
 | version | int | Version of the signal that was evaluated for this slot |
@@ -645,18 +645,18 @@ requestOutput := requestEvaluator.Evaluate(&evaluation.BidRequestEvaluatorInput{
 
 ## 2.3. DTE Filtering
 
-Once the SSP receives filtering recommendations from DTE evaluator library, SSPs are responsible for enforcing the decision on behalf of Amazon Ads to either filter or forward the bid request based on the value of `Response.slots[*].filterDecision`. If the `filterDecision` value is 0.0, DTE recommends the SSP filter the request, and if the value is 1.0, DTE recommends the SSP to forward the request.
+Once the Seller receives filtering recommendations from DTE evaluator library, Sellers are responsible for enforcing the decision on behalf of the Buyer to either filter or forward the bid request based on the value of `Response.slots[*].filterDecision`. If the `filterDecision` value is 0.0, DTE recommends the Seller filter the request, and if the value is 1.0, DTE recommends the Seller to forward the request.
 
-The SSP will also need to send the following custom extension fields:
+The Seller will also need to send the following custom extension fields:
 
-1. `slots[*].ext.amazontest.decision`: Recommended filter decision for the slot based on Amazon Ads' signals.
+1. `slots[*].ext.amazontest.decision`: Recommended filter decision for the slot based on Buyer's signals.
     1. 0.0 = filter slot (low-value request)
     2. 1.0 = forward slot (high-value request)
 2. `ext.amazontest.learning`:
-    1. 0 if request is in treatment, SSP evaluates request and filter/forward based on filter decision;
-    2. 1 if request is in control, SSP evaluates request, but ALWAYS forward the request regardless of filter decision.
+    1. 0 if request is in treatment, Seller evaluates request and filter/forward based on filter decision;
+    2. 1 if request is in control, Seller evaluates request, but ALWAYS forward the request regardless of filter decision.
 
-These extensions are returned in the DTE Response object under the `Response.ext` and `Response.slots[*].ext` fields and can be appended as-is to the OpenRTB request forwarded to Amazon.
+These extensions are returned in the DTE Response object under the `Response.ext` and `Response.slots[*].ext` fields and can be appended as-is to the OpenRTB request forwarded to the Buyer.
 
 Note that if the request is in control (learning=1), the `Response.slots[*].filterDecision` value will always be 1.0, regardless of the model result. If the request is in treatment (learning=0), the `Response.slots[*].filterDecision` value can be either 0.0 or 1.0, based on the model result.
 
@@ -664,7 +664,7 @@ Note that if the request is in control (learning=1), the `Response.slots[*].filt
 
 When the current hour's model output is not available to be fetched, the DTE library uses the latest successfully loaded model results to evaluate requests for up to 24 hours (the default local cache TTL). After the 24 hour window, all entries in the cache will expire, and no requests will be evaluated as low-value/to be filtered.
 
-In the event that the DTE library evaluation throws an exception, or is unable to properly evaluate the request with the current models, a default fallback response to not filter the request with learning set to 1 (control group) will be provided. In the extraordinary scenario where no response is received, the SSP should assume the default fallback response and forward the request according to their normal flow.
+In the event that the DTE library evaluation throws an exception, or is unable to properly evaluate the request with the current models, a default fallback response to not filter the request with learning set to 1 (control group) will be provided. In the extraordinary scenario where no response is received, the Seller should assume the default fallback response and forward the request according to their normal flow.
 
 ```json
 // default BidRequestEvaluatorOutput response for single slot (imp) request
@@ -687,30 +687,30 @@ In the event that the DTE library evaluation throws an exception, or is unable t
 
 # 3. DTE Integration Validation Requirements
 
-This integration validation checklist ensures that DTE is correctly implemented and meets all the requirements for filtering traffic on behalf of Amazon Ads. The checklist is applicable whether the SSP decides to install the DTE evaluator library provided by Amazon Ads or builds their own evaluator logic in addition to the filtering logic. Amazon Ads will provide technical support as needed to ensure successful integration.
+This integration validation checklist ensures that DTE is correctly implemented and meets all the requirements for filtering traffic on behalf of the Buyer. The checklist is applicable whether the Seller decides to install the DTE evaluator library provided by the Buyer or builds their own evaluator logic in addition to the filtering logic. The Buyer will provide technical support as needed to ensure successful integration.
 
 | Item | Integration Validation Checklist | Integration Validation Steps | Section Reference |
 |------|----------------------------------|------------------------------|-------------------|
 | **DTE Cloud** |  |  |  |
-| **1** | **SSP can access Amazon Ads resources using the provided credentials** | 1. SSP successfully sets up IAM roles as per documentation | Section 2.1, Appendix 1 |
-|  |  | 2. SSP uses STS AssumeRole for accessing Amazon resources | Section 2.1, Appendix 1 |
-|  |  | 3. SSP is able to access all configurations and signal output files using AssumeRole | Section 2.1, Appendix 1 |
-| **DTE Evaluator Library [SSP installs evaluator library provided by Amazon Ads]** |  |  |  |
-| **2** | **SSP can evaluate bid requests using DTE evaluator library** | 1. SSP successfully integrates with DTE evaluator library | Section 2.2.4 |
-|  |  | 2. SSP can initialize the `BidRequestEvaluatorFactory` with provided credentials | Section 2.2.4 |
-|  |  | 3. SSP call evaluate method on all bid requests and gets back a valid response | Section 2.2.5 |
-| **DTE Evaluator Library [SSP builds custom DTE evaluator]** |  |  |  |
-| **3** | **SSP can evaluate bid requests using custom DTE evaluator library** | 1. Review DTE evaluator library source code as a guideline | Section 2.2 |
+| **1** | **Seller can access the Buyer's resources using the provided credentials** | 1. Seller successfully sets up IAM roles as per documentation | Section 2.1, Appendix 1 |
+|  |  | 2. Seller uses STS AssumeRole for accessing Buyer's resources | Section 2.1, Appendix 1 |
+|  |  | 3. Seller is able to access all configurations and signal output files using AssumeRole | Section 2.1, Appendix 1 |
+| **DTE Evaluator Library [Seller installs evaluator library provided by the Buyer]** |  |  |  |
+| **2** | **Seller can evaluate bid requests using DTE evaluator library** | 1. Seller successfully integrates with DTE evaluator library | Section 2.2.4 |
+|  |  | 2. Seller can initialize the `BidRequestEvaluatorFactory` with provided credentials | Section 2.2.4 |
+|  |  | 3. Seller call evaluate method on all bid requests and gets back a valid response | Section 2.2.5 |
+| **DTE Evaluator Library [Seller builds custom DTE evaluator]** |  |  |  |
+| **3** | **Seller can evaluate bid requests using custom DTE evaluator library** | 1. Review DTE evaluator library source code as a guideline | Section 2.2 |
 |  |  | 2. Implement S3 bucket access and file download mechanism | Section 2.1 |
 |  |  | 3. Implement Configuration file parser | Section 2.1.1 |
 |  |  | 4. Implement Signal Output file parser | Section 2.1.2 |
 |  |  | 5. Implement periodic refresh mechanism (every 5 minutes, with randomized initialization to prevent throttling) | Section 2.2.4 |
-|  |  | 6. Implement evaluation logic based on `Configuration files` and `Signal Output files` e.g. SSP will need to evaluate OpenRTB requests against the `signal output files` using extraction logic from `Configuration file` to build required `tuples for evaluation` | Section 2.2.5 |
+|  |  | 6. Implement evaluation logic based on `Configuration files` and `Signal Output files` e.g. Seller will need to evaluate OpenRTB requests against the `signal output files` using extraction logic from `Configuration file` to build required `tuples for evaluation` | Section 2.2.5 |
 |  |  | 7. Implement change detection for Signal Metadata and Rules files using S3 ETag value | Section 2.2 |
-|  |  | 8. Implement logic to update extraction rules when changes are detected, **without code change** - *this is important so that SSP is always pulling the latest files within required SLA without further engineering work* | Section 2.2 |
+|  |  | 8. Implement logic to update extraction rules when changes are detected, **without code change** - *this is important so that Seller is always pulling the latest files within required SLA without further engineering work* | Section 2.2 |
 |  |  | 9. Implement logic to apply detected changes (for e.g. add a new feature or remove a feature or change treatment/control ratio) within 5 minutes, **without code change** (assuming same transformation) | Section 2.2 |
 | **DTE Filtering** |  |  |  |
-| **4** | **SSP can filter traffic based on DTE recommendation on behalf of Amazon Ads** | **1. Validate correct handling of treatment and control groups** | Section 2.1.1 |
+| **4** | **Seller can filter traffic based on DTE recommendation on behalf of the Buyer** | **1. Validate correct handling of treatment and control groups** | Section 2.1.1 |
 |  |  | a. Test that requests with ext.amazontest.learning = 0 (treatment) follow filtering recommendations |  |
 |  |  | b. Test that requests with ext.amazontest.learning = 1 (control) are always forwarded |  |
 |  |  | c. Verify that control group requests still evaluate signals but ignore recommendations |  |
@@ -721,7 +721,7 @@ This integration validation checklist ensures that DTE is correctly implemented 
 |  |  | b. Validate that the value is either 0 (treatment) or 1 (control) |  |
 |  |  | **4. Validate custom extension field imp[*].ext.amazontest.decision is added correctly** | Section 2.3 |
 |  |  | a. Validate that the field is present in all forwarded bid requests |  |
-|  |  | b. Validate that the value is double (0.0 for filter, 1.0 for forward) - On Amazon side, 0.0 is only expected when learning = 1 |  |
+|  |  | b. Validate that the value is double (0.0 for filter, 1.0 for forward) - On Buyer's side, 0.0 is only expected when learning = 1 |  |
 |  |  | **5. Validate filtering logic implementation** | Section 2.3 |
 |  |  | a. Test that requests with learning = 0 and imp.ext.amazontest.decision = 0.0 are filtered |  |
 |  |  | b. Test that requests with learning = 0 and imp.ext.amazontest.decision = 1.0 are forwarded |  |
@@ -729,30 +729,27 @@ This integration validation checklist ensures that DTE is correctly implemented 
 |  |  | d. Test that requests with learning = 1 and imp.ext.amazontest.decision = 1.0 are forwarded |  |
 |  |  | e. Validate that filtering is applied at the slot (imp) level, not the entire request |  |
 | **DTE Failure Handling** |  |  |  |
-| **5** | **SSP can handle DTE failure cases and execute fallback logic** | **1. Validate correct fallback behavior when current model hour is missing** | Section 2.4 |
+| **5** | **Seller can handle DTE failure cases and execute fallback logic** | **1. Validate correct fallback behavior when current model hour is missing** | Section 2.4 |
 |  |  | a. Test that requests are evaluated with last succesfully loaded model when current model hour model cannot be fetched |  |
 |  |  | b. Test that requests are never marked to filter if no model has been loaded for 24 hours |  |
 |  |  | **2. Validate correct default response for evaluation exceptions** |  |
 |  |  | a. Test that if exception is thrown, requests are evaluated to default response of learning = 1 and decision/filterDecision = 1.0 (i.e. control group, do not filter/high-value request) |  |
 |  |  | b. Test that if no response is provided, requests are evaluated to default response of learning = 1 and decision/filterDecision = 1.0 (i.e. control group, do not filter/high-value request) |  |
 | **DTE Reporting** |  |  |  |
-| **6** | **SSP can provide weekly DTE reporting via S3** | 1. SSP successfully automates weekly DTE reporting | Appendix 2 |
+| **6** | **Seller can provide weekly DTE reporting via S3** | 1. Seller successfully automates weekly DTE reporting | Appendix 2 |
 
 ---
 
 # 4. Frequently Asked Questions (FAQs)
 
 1. **Are there any types of requests that should not be evaluated by DTE?**
-    1. Currently, SSPs should not evaluate requests with Programmatic Guaranteed (PG) deals, Connected TV (CTV) requests, or Native requests. All other requests should be evaluated by DTE.
+    1. Currently, Sellers should not evaluate requests with Programmatic Guaranteed (PG) deals, Connected TV (CTV) requests, or Native requests. All other requests should be evaluated by DTE.
 
-2. **Will Amazon Ads provide this DTE Evaluator library to SSP or SSP has to build its own?**
-    1. Amazon Ads will provide the link to the source code once the SSP has agreed to the below:
-        1. The SSP has agreed in writing to the additional online terms for code sharing [This will be provided separately via email] and,
-        2. SSP wants to install and use DTE Evaluator Library provided by Amazon Ads (or will use source code as guideline)
-    2. If the SSP decides to build their own version of the evaluator library or custom evaluation logic, we recommend to use the DTE evaluator library source code as guideline and meet specifications and integration requirements in ***Section 3. DTE Integration Validation Requirements***
+2. **Will the Buyer provide this DTE Evaluator library to Seller or Seller has to build its own?**
+    1. The Seller can install and use DTE Evaluator Library provided by Buyer (or will use source code as guideline). If the Seller decides to build their own version of the evaluator library or custom evaluation logic, we recommend to use the DTE evaluator library source code as a guideline and meet specifications and integration requirements in ***Section 3. DTE Integration Validation Requirements***.
 
 3. **How much memory does the in-memory structures consume?**
-    1. This primarily depend on the signal data that is being shared. The signal output file that we are planning to share would consume anywhere between 1 and 10MB. This size also depends on the variability in supply that the SSP can forward to Amazon Ads.
+    1. This primarily depend on the signal data that is being shared. The signal output file that we are planning to share would consume anywhere between 1 and 10MB. This size also depends on the variability in supply that the Seller can forward to the Buyer.
 
 4. **What is the in-memory structure used by Config and Signal stores?**
     1. The library uses Guava Map.
@@ -763,10 +760,10 @@ This integration validation checklist ensures that DTE is correctly implemented 
 6. **Our back-end tech does not support Java or Golang, how do I install with DTE evaluator library?**
     1. We recommend coding the evaluator library into your language of choice or alternatively, build your own custom evaluator in addition to filtering logic, following all the validation steps outlined in ***section 3***.
 
-7. **What level of involvement is expected from SSPs to onboard DTE?**
+7. **What level of involvement is expected from Sellers to onboard DTE?**
     1. If onboarding DTE library (Java/GoLang), we estimate 1 to 2 days for permission setup and additional 1-2 weeks for completing integration with the library, including extension requirements. If building your own custom library, level of effort of approximately 1 month.
     2. We will set up weekly product and engineering sync with email support as needed.
-    3. SSP and Amazon Ads should agree on timeline for testing the integration.
+    3. The Seller and the Buyer should agree on timeline for testing the integration.
 
 8. **What is the latency of the evaluator?**
     1. For the current rules-based model, the latency is <1 ms.
@@ -774,21 +771,21 @@ This integration validation checklist ensures that DTE is correctly implemented 
 9. **How big are the output files for the current rules-based model?**
     1. The size will depend on the distribution of supply, but we expect the model outputs to be < 1MB.
 
-10. **What are the possible outputs of the evaluator, and what action should SSPs take for each?**
-    1. `slots[*].ext.amazontest.decision = 0.0 & ext.amazontest.learning = 0`. Then `slots[*].filterDecision = 0.0`, SSP should filter the slot.
-    2. `slots[*].ext.amazontest.decision = 1.0 & ext.amazontest.learning = 0`. Then `slots[*].filterDecision = 1.0`, SSP should **NOT** filter the slot.
-    3. `slots[*].ext.amazontest.decision = 0.0 & ext.amazontest.learning = 1`. Then `slots[*].filterDecision = 1.0`, SSP should **NOT** filter the slot.
-    4. `slots[*].ext.amazontest.decision = 1.0 & ext.amazontest.learning = 1`. Then `slots[*].filterDecision = 1.0`, SSP should **NOT** filter the slot.
+10. **What are the possible outputs of the evaluator, and what action should Sellers take for each?**
+    1. `slots[*].ext.amazontest.decision = 0.0 & ext.amazontest.learning = 0`. Then `slots[*].filterDecision = 0.0`, Seller should filter the slot.
+    2. `slots[*].ext.amazontest.decision = 1.0 & ext.amazontest.learning = 0`. Then `slots[*].filterDecision = 1.0`, Seller should **NOT** filter the slot.
+    3. `slots[*].ext.amazontest.decision = 0.0 & ext.amazontest.learning = 1`. Then `slots[*].filterDecision = 1.0`, Seller should **NOT** filter the slot.
+    4. `slots[*].ext.amazontest.decision = 1.0 & ext.amazontest.learning = 1`. Then `slots[*].filterDecision = 1.0`, Seller should **NOT** filter the slot.
 
 ---
 
-# Appendix-1: How to establish connection with DTE cloud
+# Appendix-1: How to establish connection with DTE cloud - Amazon Ads example
 
 ## A. IAM Role Setup for reading signal data [[ref](https://repost.aws/knowledge-center/lambda-function-assume-iam-role)]
 
-1. SSP, in their AWS Account, to create a role that would be used in the service, e.g. `ssp-dte-execution-role`
-2. Amazon Ads to create a new role in the DTE Cloud AWS Account. Amazon Ads will grant access permissions to specific AWS resources for this role, e.g. `ssp-dte-cloud-access-role`.
-3. SSP to create or update the policy statement of their role (ex: ssp-dte-execution-role), to allow assuming the role created in DTE Cloud AWS account.
+1. Seller, in their AWS Account, to create a role that would be used in the service, e.g. `seller-dte-execution-role`
+2. Amazon Ads to create a new role in the DTE Cloud AWS Account. Amazon Ads will grant access permissions to specific AWS resources for this role, e.g. `seller-dte-cloud-access-role`.
+3. Seller to create or update the policy statement of their role (ex: seller-dte-execution-role), to allow assuming the role created in DTE Cloud AWS account.
 
 ```json
 {
@@ -796,12 +793,12 @@ This integration validation checklist ensures that DTE is correctly implemented 
     "Statement": {
         "Effect": "Allow",
         "Action": "sts:AssumeRole",
-        "Resource": "arn:aws:iam::<DTE-Cloud-AWS-Account-Id>:role/ssp-dte-cloud-access-role"
+        "Resource": "arn:aws:iam::<DTE-Cloud-AWS-Account-Id>:role/seller-dte-cloud-access-role"
     }
 }
 ```
 
-4. Amazon Ads to add the following policy statement to trust the role created in SSP's AWS account. This allows the role created in SSP's AWS account to access AWS resources in Amazon Ads AWS account.
+4. Amazon Ads to add the following policy statement to trust the role created in Seller's AWS account. This allows the role created in Seller's AWS account to access AWS resources in Amazon Ads AWS account.
 
 ```json
 {
@@ -810,7 +807,7 @@ This integration validation checklist ensures that DTE is correctly implemented 
         {
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::<SSP-AWS-Account-Id>:role/ssp-dte-execution-role"
+                "AWS": "arn:aws:iam::<Seller-AWS-Account-Id>:role/seller-dte-execution-role"
             },
             "Action": "sts:AssumeRole"
         }
@@ -818,14 +815,14 @@ This integration validation checklist ensures that DTE is correctly implemented 
 }
 ```
 
-5. SSP to update their service's Spring/Guice config, to create a credential provider has to first assume their own role (ex: `ssp-dte-execution-role`), and then using that session assume the role provided by Amazon (ex: `ssp-dte-cloud-access-role`). Example below shows how to assume roles:
+5. Seller to update their service's Spring/Guice config, to create a credential provider has to first assume their own role (ex: `seller-dte-execution-role`), and then using that session assume the role provided by Amazon (ex: `seller-dte-cloud-access-role`). Example below shows how to assume roles:
 
 ```java
 public StsClient awsSecurityTokenService(
-        AwsCredentialsProvider defaultSSPCredentialsProvider) {
+        AwsCredentialsProvider defaultSellerCredentialsProvider) {
     return StsClient.builder()
             .region(Region.US_WEST_2)
-            .credentialsProvider(defaultSSPCredentialsProvider)
+            .credentialsProvider(defaultSellerCredentialsProvider)
             .build();
 }
 
@@ -845,8 +842,8 @@ public AwsCredentialsProvider stsAssumeRoleCredentialsProvider(
 
 ## B. IAM Role Setup for uploading reports [[ref](https://repost.aws/knowledge-center/lambda-function-assume-iam-role)]
 
-1. Amazon Ads to create a new role in the DTE Cloud AWS Account. Amazon Ads will grant access permissions to specific AWS resources for this role, e.g. `ssp-dte-cloud-reporting-role`.
-2. SSP to create or update the policy statement of their role (ex: `ssp-dte-execution-role`), to allow assuming the role created in DTE Cloud AWS account.
+1. Amazon Ads to create a new role in the DTE Cloud AWS Account. Amazon Ads will grant access permissions to specific AWS resources for this role, e.g. `seller-dte-cloud-reporting-role`.
+2. Seller to create or update the policy statement of their role (ex: `seller-dte-execution-role`), to allow assuming the role created in DTE Cloud AWS account.
 
 ```json
 {
@@ -855,14 +852,14 @@ public AwsCredentialsProvider stsAssumeRoleCredentialsProvider(
         "Effect": "Allow",
         "Action": "sts:AssumeRole",
         "Resource": [
-            "arn:aws:iam::<DTE-Cloud-AWS-Account-Id>:role/ss-dte-cloud-access-role",
-            "arn:aws:iam::<DTE-Cloud-AWS-Account-Id>:role/ssp-dte-cloud-reporting-role"
+            "arn:aws:iam::<DTE-Cloud-AWS-Account-Id>:role/seller-dte-cloud-access-role",
+            "arn:aws:iam::<DTE-Cloud-AWS-Account-Id>:role/seller-dte-cloud-reporting-role"
         ]
     }
 }
 ```
 
-3. Amazon Ads to add the following policy statement to trust the role created in SSP's AWS account. This allows the role created in SSP's AWS account to access AWS resources in Amazon Ads AWS account.
+3. Amazon Ads to add the following policy statement to trust the role created in Seller's AWS account. This allows the role created in Seller's AWS account to access AWS resources in Amazon Ads AWS account.
 
 ```json
 {
@@ -871,7 +868,7 @@ public AwsCredentialsProvider stsAssumeRoleCredentialsProvider(
         {
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::<SSP-AWS-Account-Id>:role/ssp-dte-execution-role"
+                "AWS": "arn:aws:iam::<Seller-AWS-Account-Id>:role/seller-dte-execution-role"
             },
             "Action": "sts:AssumeRole"
         }
@@ -879,7 +876,7 @@ public AwsCredentialsProvider stsAssumeRoleCredentialsProvider(
 }
 ```
 
-**To upload reports to the S3 folder provided by Amazon**, the SSP has to first assume their own role (ex: `ssp-dte-execution-role`), and then using that session assume the role provided by Amazon for reporting (ex: `ssp-dte-cloud-reporting-role`).
+**To upload reports to the S3 folder provided by Amazon**, the Seller has to first assume their own role (ex: `seller-dte-execution-role`), and then using that session assume the role provided by Amazon for reporting (ex: `seller-dte-cloud-reporting-role`).
 
 ---
 
@@ -887,7 +884,7 @@ public AwsCredentialsProvider stsAssumeRoleCredentialsProvider(
 
 Please refer to Appendix-1 [*B. IAM Role Setup for uploading reports*] for how to upload the reports. We will require one csv file per datacenter (US-IAD, US-PDX, EU, FE-SIN) broken out by overall and also individual format (Banner and Video) and delivery channel (Site, App and CTV). Treatment (T) refers to requests with learning value = 0, while Control (C) refers to requests with learning value = 1.
 
-**Example Template**
+**Amazon Ads Example Template**
 
 See the following section (Requested Metrics and Definitions) for the complete set of requests metrics to report.
 
