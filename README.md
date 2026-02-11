@@ -4,7 +4,7 @@
 
 ## 1.1. About Dynamic Traffic Engine
 
-Dynamic Traffic Engine (DTE) is an open-source signal exchange and demand-driven traffic shaping mechanism aimed at reducing programmatic waste and optimizing network and distribution costs for both supply-side platforms (sellers) and demand-side platforms (buyers). Buyers share a set of standard OpenRTB signals and traffic filtering rules with sellers. Sellers can then evaluate their bid requests (supply inventory) against those signals before deciding whether to send requests to the buyer. DTE helps both parties transact on more valuable, in-demand traffic while optimizing Queries Per Second (QPS) bandwidth on both ends.
+Dynamic Traffic Engine (DTE) is a high-performance traffic shaping and management system designed for OpenRTB-based programmatic advertising integrations. It enables buyers and sellers to dynamically control bid request traffic flow, implementing sophisticated sampling, filtering, and routing strategies. DTE helps optimize infrastructure costs and operational efficiency by allowing precise control over which bid requests are processed, at what rate, and through which integration paths. The system supports real-time configuration updates, multiple traffic shaping strategies, and detailed monitoring capabilities, making it suitable for organizations operating at scale in the programmatic advertising ecosystem.
 
 Dynamic Traffic Engine consists of three major components:
 
