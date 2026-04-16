@@ -888,7 +888,7 @@ Please refer to Appendix-1 [*B. IAM Role Setup for uploading reports*] for how t
 
 See the following section (Requested Metrics and Definitions) for the complete set of requests metrics to report.
 
-| Date | Delivery Channel + Format | Total Bid Requests Sent to Amazon | Total Spend ($) | Total Impressions | Bid Request Volume (T) | Bid Request Volume (C) | Requests Filtered by DTE Volume | DTE filter rate (%) | Spend per million ad reqeusts ($) | Fill Rate (%) | Fill Rate (T) | Fill Rate (C) | Spend per million ad reqeusts (T) | Spend per million ad reqeusts (C) | Bid Rate (T) | Bid Rate (C) |
+| Date | Delivery Channel + Format | Total Bid Requests Sent to Amazon | Total Spend ($) | Total Impressions | Bid Request Volume (T) | Bid Request Volume (C) | Requests Filtered by DTE Volume | DTE Filter Rate (%) | Spend per Million Ad Requests ($) | Fill Rate (%) | Fill Rate (T) | Fill Rate (C) | Spend per Million Ad Requests (T) | Spend per Million Ad Requests (C) | Bid Rate (T) | Bid Rate (C) |
 |------|---------------------------|-----------------------------------|-----------------|-------------------|------------------------|------------------------|--------------------------------|---------------------|-----------------------------------|---------------|---------------|---------------|-----------------------------------|-----------------------------------|--------------|--------------|
 | 2020-03-20 | Overall |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | 2020-03-20 | Site Banner |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
