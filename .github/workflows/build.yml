@@ -13,7 +13,7 @@ jobs:
   java:
     strategy:
       matrix:
-        java: [17]
+        java: [25]
         os: ['ubuntu-latest']
     runs-on: ${{ matrix.os }}
     name: Build on ${{ matrix.os }} on Java ${{ matrix.java }}
