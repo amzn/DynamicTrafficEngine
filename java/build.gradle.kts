@@ -14,13 +14,13 @@
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
-    id("com.google.protobuf") version "0.9.4"
-    id("io.freefair.lombok") version "8.6"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.google.protobuf") version "0.10.0"
+    id("io.freefair.lombok") version "9.5.0"
+    id("com.gradleup.shadow") version "9.4.2"
     jacoco
-    id("com.github.spotbugs") version "6.0.7"
+    id("com.github.spotbugs") version "6.5.6"
     checkstyle
-    id("org.cyclonedx.bom") version "1.10.0"
+    id("org.cyclonedx.bom") version "3.2.4"
 }
 
 repositories {
@@ -78,7 +78,7 @@ protobuf {
 }
 
 jacoco {
-    toolVersion = "0.8.9" // Use the latest version available
+    toolVersion = "0.8.15" // Use the latest version available
 }
 
 tasks.jacocoTestReport {
@@ -122,7 +122,7 @@ tasks.jacocoTestCoverageVerification {
 }
 
 spotbugs {
-    toolVersion.set("4.8.3")
+    toolVersion.set("4.10.2")
     ignoreFailures.set(false)
     showProgress.set(true)
     effort.set(com.github.spotbugs.snom.Effort.MAX)
