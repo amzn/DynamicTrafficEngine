@@ -241,3 +241,5 @@ tasks {
         finalizedBy(jacocoTestReport)
     }
 }
+
+project.group = "com.amazon.demanddriventrafficevaluator"
