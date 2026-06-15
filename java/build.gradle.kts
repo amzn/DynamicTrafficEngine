@@ -51,7 +51,7 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.0")
     implementation("com.jayway.jsonpath:json-path:2.9.0")
     implementation("io.github.resilience4j:resilience4j-retry:2.2.0")
-    implementation(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.17.0"))
+    implementation(platform("com.fasterxml.jackson:jackson-bom:2.17.0"))
     implementation("com.fasterxml.jackson.core:jackson-core")
     implementation("com.fasterxml.jackson.core:jackson-annotations")
     implementation("com.fasterxml.jackson.core:jackson-databind")
@@ -201,16 +201,14 @@ tasks.javadoc {
     }
 }
 
+java {
+        withJavadocJar()
+        withSourcesJar()
+}
+
 tasks {
-    jar {
-        archiveBaseName.set("DemandDrivenTrafficEvaluator")
-        archiveClassifier.set("core")
-        archiveVersion.set("2.0.0") // Set your library version
-    }
     named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-        archiveBaseName.set("DemandDrivenTrafficEvaluator")
         archiveClassifier.set("fat")
-        archiveVersion.set("2.0.0") // Set your library version
         destinationDirectory.set(layout.buildDirectory.dir("libs"))
         configurations = listOf(project.configurations.runtimeClasspath.get())
 
