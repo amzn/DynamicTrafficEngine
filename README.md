@@ -1,3 +1,5 @@
+Note: please submit all PRs to the IAB Github repo: https://github.com/IABTechLab/DynamicTrafficEngine
+
 # [Get Started] Dynamic Traffic Engine
 
 # 1. Introduction
