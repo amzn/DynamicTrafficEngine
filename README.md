@@ -355,11 +355,11 @@ This section describes structure of the experiment configuration json. The exper
 | 2.1.2 | type | Type of the experiment. Currently only the type "soft-filter" is supported. |
 | 2.1.3 | startTimeUTC | Specifies the time on when to start using this experiment. The value is provided as UTC epoch milli-seconds. |
 | 2.1.4 | endTimeUTC | Specifies the time on when to stop using this experiment. The value is provided as UTC epoch milli-seconds. |
-| 2.1.5 | allocationIdStart | It is used when you use **TreatmentAllocatorOnHash** in the **provideTreatmentAllocator** and provide the request id in the input. Specifies the start and end integers for allocation ids. These allocation ids are split between the treatment groups to in turn split the requests. Sellers are expected to implement (*reference code avalable in library*) logic that randomly assigns an allocationId (integer) to each request that can be evaluated by the model. **It has to be between 0 and 4095 (inclusive).** *We use first 3 chars of the hexdecimal of the request id which is 16^3, as the allocation id.* |
+| 2.1.5 | allocationIdStart | It is used when you use **TreatmentAllocatorOnHash** in the **provideTreatmentAllocator** and provide the request id in the input. Specifies the start and end integers for allocation ids. These allocation ids are split between the treatment groups to in turn split the requests. Sellers are expected to implement (*reference code available in library*) logic that randomly assigns an allocationId (integer) to each request that can be evaluated by the model. **It has to be between 0 and 4095 (inclusive).** *We use first 3 chars of the hexadecimal of the request id which is 16^3, as the allocation id.* |
 | 2.1.6 | allocationIdEnd | See above |
 | 2.1.7 | treatments | Provides an ordered list of treatments (traffic groups), and how to allocate traffic between these groups. |
 | 2.1.7.1 | treatmentCode | Name of the treatment |
-| 2.1.7.2 | idStart | These fields specifies a range of allocationIds. Requests associated with allocation Ids, that fall within this range are associated with this treatment. **It has to be between 0 and 4095 (inclusive).** *We use first 3 chars of the hexdecimal of the request id which is 16^3, as the allocation id.* |
+| 2.1.7.2 | idStart | These fields specifies a range of allocationIds. Requests associated with allocation Ids, that fall within this range are associated with this treatment. **It has to be between 0 and 4095 (inclusive).** *We use first 3 chars of the hexadecimal of the request id which is 16^3, as the allocation id.* |
 | 2.1.7.3 | idEnd | See above |
 | 2.1.7.4 | weight | [By Default] It is used when you use **TreatmentAllocatorOnRandom** in the **provideTreatmentAllocator**. Specifies the probability that one request is allocated to one group. |
 | 2.1.7.5 | learning | An integer flag to determine if the given treatment (traffic group) is used for learning purposes. Traffic allocated to a learning value of 1 should not be subject to filtering, while traffic allocated to a learning value of 0 is subject to filtering. We still expect Sellers to add extension fields in the bid-requests based on the model filtering evaluation or send encoded via header. *See Section 2.2.5* |
@@ -468,7 +468,7 @@ The file contains incoming requests, impressions and RPMA data for traffic tuple
 | publisher_id | `$.site.publisher.id`, `$.app.publisher.id` | Exchange-specific seller ID. Every ID must map to only a single entity that is paid for inventory transacted via that ID. Corresponds to a seller_id of a seller in the exchange's sellers.json file. |  |
 | slot_size | `$.imp[0].video.w`, `imp[0].video.h`, `$.imp[0].banner.w`, `imp[0].banner.h` | Width/height of the video player in device independent pixels (DIPS). Exact width/height in device-independent pixels (DIPS); recommended if no format objects are specified. |  |
 | slot_position | `$.imp[0].video.pos` | Ad position on screen |  |
-| device_type | `$.device.devicetype` | The general type of device. Refer to [List: Device Types](https://github.com/InteractiveAdvertisingBureau/AdCOM/blob/master/AdCOM%20v1.0%20FINAL.md#list--device-types-) in AdCOM 1.0. | 1: MOBILE, 2: DESKTOP, 3: CONNECTEDTV, 4: MOBILE, 5: MOBILE, 6: CONECTEDDEVICE, 7: CONNECTEDTV, 8: UNKNOWN |
+| device_type | `$.device.devicetype` | The general type of device. Refer to [List: Device Types](https://github.com/InteractiveAdvertisingBureau/AdCOM/blob/master/AdCOM%20v1.0%20FINAL.md#list--device-types-) in AdCOM 1.0. | 1: MOBILE, 2: DESKTOP, 3: CONNECTEDTV, 4: MOBILE, 5: MOBILE, 6: CONNECTEDDEVICE, 7: CONNECTEDTV, 8: UNKNOWN |
 | os_name | Derived from `$.device.sua` | Operating system name derived from the user-agent string through WURFL service |  |
 | device_make | Derived from `$.device.sua` | Device make derived from the user-agent string through WURFL service |  |
 | device_browser | Derived from `$.device.sua` | Device browser derived from the user-agent string through WURFL service |  |
@@ -499,7 +499,7 @@ app|video|CAN|pub_11111|640x390| | | | | |5500|400|4.0| TRUE
 
 Important note:
 
-1. The entries that have blanks indicate that all the permutations under that parent have very similar RPMAs and we are consolidated them into a single entry.
+1. The entries that have blanks indicate that all the permutations under that parent have very similar RPMAs and we are consolidating them into a single entry.
 2. `ctv` in delivery_channel is a special case which should be matched `app` blob and `device_type` of 3 (TV).
 
 ## 2.2. DTE Evaluator Library
@@ -739,7 +739,7 @@ This integration validation checklist ensures that DTE is correctly implemented 
 |  |  | e. Validate that filtering is applied at the slot (imp) level, not the entire request |  |
 | **DTE Failure Handling** |  |  |  |
 | **5** | **Seller can handle DTE failure cases and execute fallback logic** | **1. Validate correct fallback behavior when current model hour is missing** | Section 2.4 |
-|  |  | a. Test that requests are evaluated with last succesfully loaded model when current model hour model cannot be fetched |  |
+|  |  | a. Test that requests are evaluated with last successfully loaded model when current model hour model cannot be fetched |  |
 |  |  | b. Test that requests are never marked to filter if no model has been loaded for 24 hours |  |
 |  |  | **2. Validate correct default response for evaluation exceptions** |  |
 |  |  | a. Test that if exception is thrown, requests are evaluated to default response of learning = 1 and decision/filterDecision = 1.0 (i.e. control group, do not filter/high-value request) |  |
